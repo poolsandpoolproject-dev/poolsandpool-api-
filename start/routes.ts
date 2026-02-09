@@ -19,6 +19,7 @@ router.get('/', async () => {
 
 const AuthController = () => import('#controllers/auth_controller')
 const AdminCategoriesController = () => import('#controllers/Admin/categories_controller')
+const PublicMenusController = () => import('#controllers/Public/menus_controller')
 const AdminUploadsController = () => import('#controllers/Admin/uploads_controller')
 const AdminSectionsController = () => import('#controllers/Admin/sections_controller')
 const AdminMenuItemsController = () => import('#controllers/Admin/menu_items_controller')
@@ -53,6 +54,9 @@ router
     router.get('public/ping', async () => {
       return { ok: true }
     })
+
+    router.get('public/categories', [PublicMenusController, 'categoriesIndex'])
+    router.get('public/categories/:id', [PublicMenusController, 'categoriesShow'])
 
     router.post('auth/login', [AuthController, 'login'])
     router

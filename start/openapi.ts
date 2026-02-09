@@ -24,6 +24,104 @@ export const openapi = {
         },
       },
     },
+    '/public/categories': {
+      get: {
+        tags: ['public'],
+        summary: 'List categories (enabled only)',
+        responses: {
+          200: {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    data: {
+                      type: 'array',
+                      items: {
+                        type: 'object',
+                        properties: {
+                          id: { type: 'string', format: 'uuid' },
+                          name: { type: 'string' },
+                          slug: { type: 'string' },
+                          description: { type: 'string', nullable: true },
+                          imageUrl: { type: 'string', nullable: true },
+                          order: { type: 'integer' },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/public/categories/{id}': {
+      get: {
+        tags: ['public'],
+        summary: 'Get category by ID with sections and menu items (enabled only)',
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          200: {
+            description: 'OK',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    data: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string', format: 'uuid' },
+                        name: { type: 'string' },
+                        slug: { type: 'string' },
+                        description: { type: 'string', nullable: true },
+                        imageUrl: { type: 'string', nullable: true },
+                        order: { type: 'integer' },
+                        sections: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              id: { type: 'string', format: 'uuid' },
+                              name: { type: 'string' },
+                              slug: { type: 'string' },
+                              description: { type: 'string', nullable: true },
+                              imageUrl: { type: 'string', nullable: true },
+                              order: { type: 'integer' },
+                              menuItems: {
+                                type: 'array',
+                                items: {
+                                  type: 'object',
+                                  properties: {
+                                    id: { type: 'string', format: 'uuid' },
+                                    name: { type: 'string' },
+                                    slug: { type: 'string' },
+                                    description: { type: 'string', nullable: true },
+                                    basePrice: { type: 'string' },
+                                    effectivePrice: { type: 'string' },
+                                    imageUrl: { type: 'string', nullable: true },
+                                    available: { type: 'boolean' },
+                                  },
+                                },
+                              },
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          400: { description: 'Invalid ID' },
+          404: { description: 'Category not found' },
+        },
+      },
+    },
     '/auth/login': {
       post: {
         tags: ['auth'],
