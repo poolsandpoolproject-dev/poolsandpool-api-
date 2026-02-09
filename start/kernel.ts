@@ -41,4 +41,5 @@ router.use([() => import('@adonisjs/core/bodyparser_middleware'), () => import('
 export const middleware = router.named({
   auth: () => import('#middleware/auth_middleware'),
   requireRole: () => import('#middleware/require_role_middleware'),
+  validateUuidParams: () => import('#middleware/validate_uuid_params_middleware'),
 })

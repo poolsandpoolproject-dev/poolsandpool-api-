@@ -103,6 +103,10 @@ router
         })
       })
       .prefix('admin')
-      .use([middleware.auth({ guards: ['api'] }), middleware.requireRole({ roles: ['admin'] })])
+      .use([
+        middleware.auth({ guards: ['api'] }),
+        middleware.requireRole({ roles: ['admin'] }),
+        middleware.validateUuidParams(),
+      ])
   })
   .prefix('api/v1')

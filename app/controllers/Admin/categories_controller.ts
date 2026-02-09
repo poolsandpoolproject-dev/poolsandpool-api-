@@ -46,7 +46,10 @@ export default class CategoriesController {
   }
 
   async show({ params, response }: HttpContext) {
-    const category = await Category.query().where('id', params.id).preload('sections').firstOrFail()
+    const category = await Category.query().where('id', params.id).preload('sections').first()
+    if (!category) {
+      return response.notFound({ message: 'Category not found' })
+    }
     const data = {
       ...category.serialize(),
       sectionsCount: category.sections.length,
@@ -95,7 +98,10 @@ export default class CategoriesController {
 
   async update({ params, request, response }: HttpContext) {
     const payload = await request.validateUsing(updateCategoryValidator)
-    const category = await Category.findOrFail(params.id)
+    const category = await Category.find(params.id)
+    if (!category) {
+      return response.notFound({ message: 'Category not found' })
+    }
 
     const image = request.file('image', {
       size: '10mb',
@@ -154,14 +160,20 @@ export default class CategoriesController {
 
   async setEnabled({ params, request, response }: HttpContext) {
     const { enabled } = await request.validateUsing(setEnabledValidator)
-    const category = await Category.findOrFail(params.id)
+    const category = await Category.find(params.id)
+    if (!category) {
+      return response.notFound({ message: 'Category not found' })
+    }
     category.enabled = enabled
     await category.save()
     return response.ok({ data: { id: category.id, enabled: category.enabled } })
   }
 
   async destroy({ params, response }: HttpContext) {
-    const category = await Category.findOrFail(params.id)
+    const category = await Category.find(params.id)
+    if (!category) {
+      return response.notFound({ message: 'Category not found' })
+    }
     const hasSections = await category.related('sections').query().first()
     if (hasSections) {
       return response.conflict({

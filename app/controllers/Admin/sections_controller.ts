@@ -4,6 +4,7 @@ import Section from '#models/section'
 import { uploadImageFromPath } from '#services/cloudinary_service'
 import { slimRelation } from '#services/relation_serializer'
 import { ensureUniqueSlug, toTitleCase } from '#services/slug_service'
+import { isValidUuid } from '#services/uuid'
 import {
   createSectionValidator,
   reorderSectionsValidator,
@@ -15,6 +16,9 @@ export default class SectionsController {
   async index({ request, response }: HttpContext) {
     const includeDisabled = request.input('includeDisabled', true)
     const categoryId = request.input('categoryId')
+    if (categoryId !== undefined && categoryId !== '' && !isValidUuid(categoryId)) {
+      return response.badRequest({ message: 'Invalid category ID' })
+    }
     const search = request.input('search')?.trim()
     const enabled = request.input('enabled')
     const page = Math.max(1, request.input('page', 1))
@@ -59,7 +63,10 @@ export default class SectionsController {
       .where('id', params.id)
       .preload('category')
       .preload('menuItems')
-      .firstOrFail()
+      .first()
+    if (!section) {
+      return response.notFound({ message: 'Section not found' })
+    }
     const data = {
       ...section.serialize(),
       category: slimRelation(section.category),
@@ -72,7 +79,10 @@ export default class SectionsController {
   async store({ request, response }: HttpContext) {
     const payload = await request.validateUsing(createSectionValidator)
 
-    await Category.findOrFail(payload.categoryId)
+    const category = await Category.find(payload.categoryId)
+    if (!category) {
+      return response.notFound({ message: 'Category not found' })
+    }
 
     const slug = await ensureUniqueSlug(payload.name, async (candidate) => {
       const found = await Section.query()
@@ -117,7 +127,10 @@ export default class SectionsController {
 
   async update({ params, request, response }: HttpContext) {
     const payload = await request.validateUsing(updateSectionValidator)
-    const section = await Section.findOrFail(params.id)
+    const section = await Section.find(params.id)
+    if (!section) {
+      return response.notFound({ message: 'Section not found' })
+    }
 
     const image = request.file('image', {
       size: '10mb',
@@ -133,7 +146,10 @@ export default class SectionsController {
     }
 
     if (payload.categoryId !== undefined) {
-      await Category.findOrFail(payload.categoryId)
+      const category = await Category.find(payload.categoryId)
+      if (!category) {
+        return response.notFound({ message: 'Category not found' })
+      }
       section.categoryId = payload.categoryId
     }
     if (payload.name !== undefined) {
@@ -161,7 +177,10 @@ export default class SectionsController {
   async reorder({ request, response }: HttpContext) {
     const { categoryId, sectionIds } = await request.validateUsing(reorderSectionsValidator)
 
-    await Category.findOrFail(categoryId)
+    const category = await Category.find(categoryId)
+    if (!category) {
+      return response.notFound({ message: 'Category not found' })
+    }
 
     const rows = await Section.query().where('category_id', categoryId).whereIn('id', sectionIds)
     if (rows.length !== sectionIds.length) {
@@ -185,14 +204,20 @@ export default class SectionsController {
 
   async setEnabled({ params, request, response }: HttpContext) {
     const { enabled } = await request.validateUsing(setEnabledValidator)
-    const section = await Section.findOrFail(params.id)
+    const section = await Section.find(params.id)
+    if (!section) {
+      return response.notFound({ message: 'Section not found' })
+    }
     section.enabled = enabled
     await section.save()
     return response.ok({ data: { id: section.id, enabled: section.enabled } })
   }
 
   async destroy({ params, response }: HttpContext) {
-    const section = await Section.findOrFail(params.id)
+    const section = await Section.find(params.id)
+    if (!section) {
+      return response.notFound({ message: 'Section not found' })
+    }
     const hasMenuItems = await section.related('menuItems').query().first()
     if (hasMenuItems) {
       return response.conflict({

@@ -16,7 +16,10 @@ function serializeWithStatus(tp: TemporaryPrice) {
 
 export default class TemporaryPricesController {
   async index({ params, response }: HttpContext) {
-    const menuItem = await MenuItem.findOrFail(params.menuItemId)
+    const menuItem = await MenuItem.find(params.menuItemId)
+    if (!menuItem) {
+      return response.notFound({ message: 'Menu item not found' })
+    }
     const list = await TemporaryPrice.query()
       .where('menu_item_id', menuItem.id)
       .orderBy('start_at', 'desc')
@@ -26,7 +29,10 @@ export default class TemporaryPricesController {
   }
 
   async store({ params, request, response }: HttpContext) {
-    const menuItem = await MenuItem.findOrFail(params.menuItemId)
+    const menuItem = await MenuItem.find(params.menuItemId)
+    if (!menuItem) {
+      return response.notFound({ message: 'Menu item not found' })
+    }
     const payload = await request.validateUsing(createTemporaryPriceValidator)
 
     const temporaryPrice = await TemporaryPrice.create({
@@ -46,7 +52,10 @@ export default class TemporaryPricesController {
     const temporaryPrice = await TemporaryPrice.query()
       .where('menu_item_id', params.menuItemId)
       .where('id', params.id)
-      .firstOrFail()
+      .first()
+    if (!temporaryPrice) {
+      return response.notFound({ message: 'Temporary price not found' })
+    }
 
     const payload = await request.validateUsing(updateTemporaryPriceValidator)
 
@@ -65,7 +74,10 @@ export default class TemporaryPricesController {
     const temporaryPrice = await TemporaryPrice.query()
       .where('menu_item_id', params.menuItemId)
       .where('id', params.id)
-      .firstOrFail()
+      .first()
+    if (!temporaryPrice) {
+      return response.notFound({ message: 'Temporary price not found' })
+    }
 
     const { enabled } = await request.validateUsing(setEnabledValidator)
     temporaryPrice.enabled = enabled
@@ -77,7 +89,10 @@ export default class TemporaryPricesController {
     const original = await TemporaryPrice.query()
       .where('menu_item_id', params.menuItemId)
       .where('id', params.id)
-      .firstOrFail()
+      .first()
+    if (!original) {
+      return response.notFound({ message: 'Temporary price not found' })
+    }
 
     const copy = await TemporaryPrice.create({
       menuItemId: original.menuItemId,
@@ -96,7 +111,10 @@ export default class TemporaryPricesController {
     const temporaryPrice = await TemporaryPrice.query()
       .where('menu_item_id', params.menuItemId)
       .where('id', params.id)
-      .firstOrFail()
+      .first()
+    if (!temporaryPrice) {
+      return response.notFound({ message: 'Temporary price not found' })
+    }
 
     await temporaryPrice.delete()
     return response.ok({ success: true })

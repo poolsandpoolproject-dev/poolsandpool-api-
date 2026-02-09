@@ -4,6 +4,7 @@ import Section from '#models/section'
 import { uploadImageFromPath } from '#services/cloudinary_service'
 import { slimRelation } from '#services/relation_serializer'
 import { ensureUniqueSlug, toTitleCase } from '#services/slug_service'
+import { isValidUuid } from '#services/uuid'
 import {
   createMenuItemValidator,
   updateMenuItemValidator,
@@ -16,6 +17,12 @@ export default class MenuItemsController {
     const includeDisabled = request.input('includeDisabled', true)
     const categoryId = request.input('categoryId')
     const sectionId = request.input('sectionId')
+    if (categoryId !== undefined && categoryId !== '' && !isValidUuid(categoryId)) {
+      return response.badRequest({ message: 'Invalid category ID' })
+    }
+    if (sectionId !== undefined && sectionId !== '' && !isValidUuid(sectionId)) {
+      return response.badRequest({ message: 'Invalid section ID' })
+    }
     const search = request.input('search')?.trim()
     const available = request.input('available')
     const enabled = request.input('enabled')
@@ -57,7 +64,10 @@ export default class MenuItemsController {
       .where('id', params.id)
       .preload('section')
       .preload('category')
-      .firstOrFail()
+      .first()
+    if (!menuItem) {
+      return response.notFound({ message: 'Menu item not found' })
+    }
     const data = {
       ...menuItem.serialize(),
       section: slimRelation(menuItem.section),
@@ -72,7 +82,10 @@ export default class MenuItemsController {
     const section = await Section.query()
       .where('id', payload.sectionId)
       .where('category_id', payload.categoryId)
-      .firstOrFail()
+      .first()
+    if (!section) {
+      return response.notFound({ message: 'Section not found or section does not belong to category' })
+    }
 
     const slug = await ensureUniqueSlug(payload.name, async (candidate) => {
       const found = await MenuItem.query()
@@ -120,12 +133,18 @@ export default class MenuItemsController {
 
   async update({ params, request, response }: HttpContext) {
     const payload = await request.validateUsing(updateMenuItemValidator)
-    const menuItem = await MenuItem.findOrFail(params.id)
+    const menuItem = await MenuItem.find(params.id)
+    if (!menuItem) {
+      return response.notFound({ message: 'Menu item not found' })
+    }
 
     if (payload.categoryId !== undefined || payload.sectionId !== undefined) {
       const categoryId = payload.categoryId ?? menuItem.categoryId
       const sectionId = payload.sectionId ?? menuItem.sectionId
-      await Section.query().where('id', sectionId).where('category_id', categoryId).firstOrFail()
+      const section = await Section.query().where('id', sectionId).where('category_id', categoryId).first()
+      if (!section) {
+        return response.notFound({ message: 'Section not found or section does not belong to category' })
+      }
       if (payload.categoryId !== undefined) menuItem.categoryId = payload.categoryId
       if (payload.sectionId !== undefined) menuItem.sectionId = payload.sectionId
     }
@@ -173,7 +192,10 @@ export default class MenuItemsController {
 
   async setAvailability({ params, request, response }: HttpContext) {
     const { available } = await request.validateUsing(setAvailabilityValidator)
-    const menuItem = await MenuItem.findOrFail(params.id)
+    const menuItem = await MenuItem.find(params.id)
+    if (!menuItem) {
+      return response.notFound({ message: 'Menu item not found' })
+    }
     menuItem.available = available
     await menuItem.save()
     return response.ok({ data: { id: menuItem.id, available: menuItem.available } })
@@ -181,14 +203,20 @@ export default class MenuItemsController {
 
   async setEnabled({ params, request, response }: HttpContext) {
     const { enabled } = await request.validateUsing(setEnabledValidator)
-    const menuItem = await MenuItem.findOrFail(params.id)
+    const menuItem = await MenuItem.find(params.id)
+    if (!menuItem) {
+      return response.notFound({ message: 'Menu item not found' })
+    }
     menuItem.enabled = enabled
     await menuItem.save()
     return response.ok({ data: { id: menuItem.id, enabled: menuItem.enabled } })
   }
 
   async destroy({ params, response }: HttpContext) {
-    const menuItem = await MenuItem.findOrFail(params.id)
+    const menuItem = await MenuItem.find(params.id)
+    if (!menuItem) {
+      return response.notFound({ message: 'Menu item not found' })
+    }
     await menuItem.delete()
     return response.ok({ success: true })
   }

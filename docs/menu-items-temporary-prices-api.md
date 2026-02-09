@@ -47,9 +47,25 @@ Each item includes slim `section` and `category`: `{ id, name, slug, imageUrl }`
 
 **POST** `/api/v1/admin/menu-items`
 
-**Content-Type:** `application/json` or `multipart/form-data` (if image).
+Use **multipart/form-data** when uploading an image (recommended). Use **application/json** only when you have no image or pass an existing `imageUrl`.
 
-**JSON body**
+**Form-data (recommended — with image)**
+
+| Field        | Type   | Required | Notes                                      |
+|-------------|--------|----------|--------------------------------------------|
+| categoryId  | string | Yes      | Category UUID                              |
+| sectionId   | string | Yes      | Section UUID (must be in category)        |
+| name        | string | Yes      | Min length 1                               |
+| basePrice   | number | Yes      | Min 0 (e.g. cents)                         |
+| description | string | No       |                                            |
+| **image**   | file   | No       | Image file (jpg, jpeg, png, webp, max 10mb) — uploads to Cloudinary |
+| imageUrl    | string | No       | Alternative: existing image URL (skip if sending `image`) |
+| available   | boolean| No       | Default true                               |
+| enabled     | boolean| No       | Default true                               |
+
+Example: send as `multipart/form-data` with `categoryId`, `sectionId`, `name`, `basePrice`, and `image` (file). The server uploads `image` to Cloudinary and stores the returned URL.
+
+**JSON body (no image or imageUrl only)**
 
 ```json
 {
@@ -64,18 +80,7 @@ Each item includes slim `section` and `category`: `{ id, name, slug, imageUrl }`
 }
 ```
 
-| Field        | Type    | Required | Notes                          |
-|-------------|---------|----------|--------------------------------|
-| categoryId  | string  | Yes      | Category UUID                  |
-| sectionId   | string  | Yes      | Section UUID (must be in category) |
-| name        | string  | Yes      | Min length 1                   |
-| basePrice   | number  | Yes      | Min 0 (e.g. cents)             |
-| description | string  | No       |                                |
-| imageUrl    | string  | No       | Valid URL                      |
-| available   | boolean | No       | Default true                   |
-| enabled     | boolean | No       | Default true                   |
-
-**Form-data (with image):** same fields + `image` (file: jpg, jpeg, png, webp, max 10mb).
+Use this when you are not uploading a file (e.g. image already hosted, or no image).
 
 **Response:** `201 Created` with `{ "data": { ...menuItem, section, category } }`
 
@@ -85,7 +90,7 @@ Each item includes slim `section` and `category`: `{ id, name, slug, imageUrl }`
 
 **PATCH** `/api/v1/admin/menu-items/:id`
 
-**Content-Type:** `application/json` or `multipart/form-data`.
+**Content-Type:** `application/json` or `multipart/form-data` (use form-data to upload a new **image** file; image is uploaded to Cloudinary and replaces the item’s image).
 
 **JSON body (all optional)**
 
@@ -96,6 +101,7 @@ Each item includes slim `section` and `category`: `{ id, name, slug, imageUrl }`
   "name": "Chicken Wings (BBQ)",
   "description": "Updated desc",
   "basePrice": 5500,
+ **image**   | file   | No       | Image file (jpg, jpeg, png, webp, max 10mb) — uploads to Cloudinary 
   "imageUrl": "https://...",
   "available": false,
   "enabled": true
