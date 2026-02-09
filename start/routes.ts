@@ -22,6 +22,7 @@ const AdminCategoriesController = () => import('#controllers/Admin/categories_co
 const AdminUploadsController = () => import('#controllers/Admin/uploads_controller')
 const AdminSectionsController = () => import('#controllers/Admin/sections_controller')
 const AdminMenuItemsController = () => import('#controllers/Admin/menu_items_controller')
+const AdminTemporaryPricesController = () => import('#controllers/Admin/temporary_prices_controller')
 
 router
   .group(() => {
@@ -81,6 +82,18 @@ router
 
         router.get('menu-items', [AdminMenuItemsController, 'index'])
         router.get('menu-items/:id', [AdminMenuItemsController, 'show'])
+        router.post('menu-items', [AdminMenuItemsController, 'store'])
+        router.patch('menu-items/:id', [AdminMenuItemsController, 'update'])
+        router.patch('menu-items/:id/availability', [AdminMenuItemsController, 'setAvailability'])
+        router.patch('menu-items/:id/enabled', [AdminMenuItemsController, 'setEnabled'])
+        router.delete('menu-items/:id', [AdminMenuItemsController, 'destroy'])
+
+        router.get('menu-items/:menuItemId/temporary-prices', [AdminTemporaryPricesController, 'index'])
+        router.post('menu-items/:menuItemId/temporary-prices', [AdminTemporaryPricesController, 'store'])
+        router.patch('menu-items/:menuItemId/temporary-prices/:id', [AdminTemporaryPricesController, 'update'])
+        router.patch('menu-items/:menuItemId/temporary-prices/:id/enabled', [AdminTemporaryPricesController, 'setEnabled'])
+        router.post('menu-items/:menuItemId/temporary-prices/:id/duplicate', [AdminTemporaryPricesController, 'duplicate'])
+        router.delete('menu-items/:menuItemId/temporary-prices/:id', [AdminTemporaryPricesController, 'destroy'])
 
         router.get('ping', async ({ auth }) => {
           return {

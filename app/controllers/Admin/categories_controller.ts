@@ -162,6 +162,12 @@ export default class CategoriesController {
 
   async destroy({ params, response }: HttpContext) {
     const category = await Category.findOrFail(params.id)
+    const hasSections = await category.related('sections').query().first()
+    if (hasSections) {
+      return response.conflict({
+        message: 'Cannot delete category that has sections. Remove or move sections first.',
+      })
+    }
     const hasMenuItems = await category.related('menuItems').query().first()
     if (hasMenuItems) {
       return response.conflict({
