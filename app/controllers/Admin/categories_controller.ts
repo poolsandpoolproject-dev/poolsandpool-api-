@@ -159,4 +159,16 @@ export default class CategoriesController {
     await category.save()
     return response.ok({ data: { id: category.id, enabled: category.enabled } })
   }
+
+  async destroy({ params, response }: HttpContext) {
+    const category = await Category.findOrFail(params.id)
+    const hasMenuItems = await category.related('menuItems').query().first()
+    if (hasMenuItems) {
+      return response.conflict({
+        message: 'Cannot delete category that has menu items. Remove or move menu items first.',
+      })
+    }
+    await category.delete()
+    return response.ok({ success: true })
+  }
 }

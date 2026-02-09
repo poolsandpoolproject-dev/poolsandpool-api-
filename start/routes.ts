@@ -69,6 +69,7 @@ router
         router.patch('categories/:id', [AdminCategoriesController, 'update'])
         router.post('categories/reorder', [AdminCategoriesController, 'reorder'])
         router.patch('categories/:id/enabled', [AdminCategoriesController, 'setEnabled'])
+        router.delete('categories/:id', [AdminCategoriesController, 'destroy'])
 
         router.get('sections', [AdminSectionsController, 'index'])
         router.get('sections/:id', [AdminSectionsController, 'show'])
@@ -76,6 +77,7 @@ router
         router.patch('sections/:id', [AdminSectionsController, 'update'])
         router.post('sections/reorder', [AdminSectionsController, 'reorder'])
         router.patch('sections/:id/enabled', [AdminSectionsController, 'setEnabled'])
+        router.delete('sections/:id', [AdminSectionsController, 'destroy'])
 
         router.get('menu-items', [AdminMenuItemsController, 'index'])
         router.get('menu-items/:id', [AdminMenuItemsController, 'show'])

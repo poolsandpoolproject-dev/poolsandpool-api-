@@ -190,4 +190,16 @@ export default class SectionsController {
     await section.save()
     return response.ok({ data: { id: section.id, enabled: section.enabled } })
   }
+
+  async destroy({ params, response }: HttpContext) {
+    const section = await Section.findOrFail(params.id)
+    const hasMenuItems = await section.related('menuItems').query().first()
+    if (hasMenuItems) {
+      return response.conflict({
+        message: 'Cannot delete section that has menu items. Remove or move menu items first.',
+      })
+    }
+    await section.delete()
+    return response.ok({ success: true })
+  }
 }
