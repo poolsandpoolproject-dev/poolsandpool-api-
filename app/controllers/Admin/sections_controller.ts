@@ -82,13 +82,17 @@ export default class SectionsController {
       imageUrl = uploaded.url
     }
 
+    const nextOrder =
+      payload.order ??
+      ((await Section.query().where('category_id', payload.categoryId).max('order as max').first())?.$extras?.max ?? -1) + 1
+
     const section = await Section.create({
       categoryId: payload.categoryId,
       name: toTitleCase(payload.name),
       slug,
       description: payload.description ?? null,
       imageUrl,
-      order: payload.order ?? 0,
+      order: nextOrder,
       enabled: payload.enabled ?? true,
     })
 

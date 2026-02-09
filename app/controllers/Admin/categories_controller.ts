@@ -67,12 +67,16 @@ export default class CategoriesController {
       imageUrl = uploaded.url
     }
 
+    const nextOrder =
+      payload.order ??
+      ((await Category.query().max('order as max').first())?.$extras?.max ?? -1) + 1
+
     const category = await Category.create({
       name: toTitleCase(payload.name),
       slug,
       description: payload.description ?? null,
       imageUrl,
-      order: payload.order ?? 0,
+      order: nextOrder,
       enabled: payload.enabled ?? true,
     })
 
