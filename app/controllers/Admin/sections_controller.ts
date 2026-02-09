@@ -41,17 +41,28 @@ export default class SectionsController {
       })
     }
 
-    const result = await query.preload('category').paginate(page, perPage)
+    const result = await query.preload('category').preload('menuItems').paginate(page, perPage)
     const data = result.all().map((s) => ({
       ...s.serialize(),
       category: slimRelation(s.category),
+      menuItemsCount: s.menuItems.length,
+      menuItemNames: s.menuItems.map((mi) => mi.name),
     }))
     return response.ok({ data, meta: result.getMeta() })
   }
 
   async show({ params, response }: HttpContext) {
-    const section = await Section.query().where('id', params.id).preload('category').firstOrFail()
-    const data = { ...section.serialize(), category: slimRelation(section.category) }
+    const section = await Section.query()
+      .where('id', params.id)
+      .preload('category')
+      .preload('menuItems')
+      .firstOrFail()
+    const data = {
+      ...section.serialize(),
+      category: slimRelation(section.category),
+      menuItemsCount: section.menuItems.length,
+      menuItemNames: section.menuItems.map((mi) => mi.name),
+    }
     return response.ok({ data })
   }
 

@@ -33,16 +33,23 @@ export default class CategoriesController {
       })
     }
 
-    const result = await query.paginate(page, perPage)
-    return response.ok({
-      data: result.all(),
-      meta: result.getMeta(),
-    })
+    const result = await query.preload('sections').paginate(page, perPage)
+    const data = result.all().map((c) => ({
+      ...c.serialize(),
+      sectionsCount: c.sections.length,
+      sectionNames: c.sections.map((s) => s.name),
+    }))
+    return response.ok({ data, meta: result.getMeta() })
   }
 
   async show({ params, response }: HttpContext) {
-    const category = await Category.findOrFail(params.id)
-    return response.ok({ data: category })
+    const category = await Category.query().where('id', params.id).preload('sections').firstOrFail()
+    const data = {
+      ...category.serialize(),
+      sectionsCount: category.sections.length,
+      sectionNames: category.sections.map((s) => s.name),
+    }
+    return response.ok({ data })
   }
 
   async store({ request, response }: HttpContext) {
