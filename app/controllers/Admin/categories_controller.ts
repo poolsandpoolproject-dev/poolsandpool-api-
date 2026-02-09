@@ -34,11 +34,14 @@ export default class CategoriesController {
     }
 
     const result = await query.preload('sections').paginate(page, perPage)
-    const data = result.all().map((c) => ({
-      ...c.serialize(),
-      sectionsCount: c.sections.length,
-      sectionNames: c.sections.map((s) => s.name),
-    }))
+    const data = result.all().map((c) => {
+      const { sections: _s, ...rest } = c.serialize()
+      return {
+        ...rest,
+        sectionsCount: c.sections.length,
+        sectionNames: c.sections.map((s) => s.name),
+      }
+    })
     return response.ok({ data, meta: result.getMeta() })
   }
 

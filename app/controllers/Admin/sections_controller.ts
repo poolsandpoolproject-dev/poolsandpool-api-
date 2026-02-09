@@ -42,12 +42,15 @@ export default class SectionsController {
     }
 
     const result = await query.preload('category').preload('menuItems').paginate(page, perPage)
-    const data = result.all().map((s) => ({
-      ...s.serialize(),
-      category: slimRelation(s.category),
-      menuItemsCount: s.menuItems.length,
-      menuItemNames: s.menuItems.map((mi) => mi.name),
-    }))
+    const data = result.all().map((s) => {
+      const { menuItems: _mi, ...rest } = s.serialize()
+      return {
+        ...rest,
+        category: slimRelation(s.category),
+        menuItemsCount: s.menuItems.length,
+        menuItemNames: s.menuItems.map((mi) => mi.name),
+      }
+    })
     return response.ok({ data, meta: result.getMeta() })
   }
 
