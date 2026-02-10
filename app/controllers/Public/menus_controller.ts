@@ -23,14 +23,16 @@ export default class MenusController {
   }
 
   async categoriesShow({ params, response }: HttpContext) {
-    const id = typeof params.id === 'string' ? params.id.trim() : ''
-    if (!isValidUuid(id)) {
-      return response.badRequest({ message: 'Invalid ID' })
+    const idOrSlug = (typeof params.id === 'string' ? params.id.trim() : '') || ''
+    const byId = isValidUuid(idOrSlug)
+    const query = Category.query().where('enabled', true)
+    if (byId) {
+      query.where('id', idOrSlug)
+    } else {
+      query.where('slug', idOrSlug)
     }
 
-    const category = await Category.query()
-      .where('id', id)
-      .where('enabled', true)
+    const category = await query
       .preload('sections', (q) =>
         q
           .where('enabled', true)

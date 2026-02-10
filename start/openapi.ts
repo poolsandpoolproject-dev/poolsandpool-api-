@@ -61,8 +61,10 @@ export const openapi = {
     '/public/categories/{id}': {
       get: {
         tags: ['public'],
-        summary: 'Get category by ID with sections and menu items (enabled only)',
-        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        summary: 'Get category by ID or slug with sections and menu items (enabled only)',
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string' }, description: 'Category UUID or slug' },
+        ],
         responses: {
           200: {
             description: 'OK',
@@ -117,7 +119,6 @@ export const openapi = {
               },
             },
           },
-          400: { description: 'Invalid ID' },
           404: { description: 'Category not found' },
         },
       },
