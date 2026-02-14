@@ -16,10 +16,8 @@ const bodyParserConfig = defineConfig({
     types: ['application/x-www-form-urlencoded'],
   },
 
-  /**
-   * Config for the JSON parser
-   */
   json: {
+    limit: '50mb',
     convertEmptyStringsToNull: true,
     types: [
       'application/json',
@@ -29,25 +27,14 @@ const bodyParserConfig = defineConfig({
     ],
   },
 
-  /**
-   * Config for the "multipart/form-data" content-type parser.
-   * File uploads are handled by the multipart parser.
-   */
   multipart: {
-    /**
-     * Enabling auto process allows bodyparser middleware to
-     * move all uploaded files inside the tmp folder of your
-     * operating system
-     */
     autoProcess: true,
     convertEmptyStringsToNull: true,
     processManually: [],
 
-    /**
-     * Maximum limit of data to parse including all files
-     * and fields
-     */
-    limit: '20mb',
+    limit: '50mb',
+    fieldsLimit: '10mb',
+    maxFields: 1000,
     types: ['multipart/form-data'],
   },
 })
